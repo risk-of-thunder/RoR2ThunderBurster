@@ -1,0 +1,26 @@
+{
+    "name": "RoR2ThunderBurster.ImportExtensions",
+    "rootNamespace": "RoR2.ThunderBurster.ImportExtensions",
+    "references": [
+        "GUID:280569ac301428d4d950fdf647900922",
+        "GUID:48abf88f565f4bb4fb35fbe2385f0894",
+        "GUID:fb8ce2e2486231249a0954d5da518927"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "riskofthunder-ror2importextensions",
+            "expression": "1.7.0",
+            "define": "R2TB_IMPORT_EXTENSIONS"
+        }
+    ],
+    "noEngineReferences": false
+}
