@@ -1,5 +1,5 @@
 {
-    "name": "RoR2ThunderBurster",
+    "name": "RoR2ThunderBurster.Core",
     "rootNamespace": "RoR2ThunderBurster",
     "references": [
         "GUID:48abf88f565f4bb4fb35fbe2385f0894",

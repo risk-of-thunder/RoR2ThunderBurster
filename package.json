@@ -1,8 +1,7 @@
 {
-  "name": "riskofthunder.riskofthunder-ror2_thunder_burster",
+  "name": "riskofthunder-ror2_thunder_burster",
   "displayName": "RoR2 Thunder Burster",
   "version": "0.0.1",
   "unity": "2021.3",
-  "description": "Thunderkit Extension used for Developing mods with Burst, Collections and Mathematics packages.",
-  "dependencies": {}
+  "description": "Thunderkit Extension used for Developing mods with Burst, Collections and Mathematics packages."
 }
