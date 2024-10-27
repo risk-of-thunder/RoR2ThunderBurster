@@ -23,7 +23,7 @@ To burst an assembly, first you need to replace your Manifest's ``AssemblyDefini
 
 You can do this by right clicking the cog to the right of the compossable element and clicking remove. then adding the new datum.
 
-![ManifestWithDatum]()
+![ManifestWithDatum](https://raw.githubusercontent.com/risk-of-thunder/RoR2_Thunder_Burster/refs/heads/main/Documentation/Manifest%20with%20Datum.png)
 
 Secondly, on any pipeline of your choice, add the ``BurstStagedAssemblies`` job.
 
@@ -31,4 +31,4 @@ You may notice that it has a single field, this field should point to the Stage 
 
 A Burst Staged Assemblies job should run AFTER it's Stage Assemblies counterpart.
 
-![PipelineWithJob]()
+![PipelineWithJob](https://raw.githubusercontent.com/risk-of-thunder/RoR2_Thunder_Burster/refs/heads/main/Documentation/Pipeline%20with%20Job.png)
