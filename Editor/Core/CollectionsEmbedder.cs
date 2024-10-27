@@ -20,7 +20,7 @@ namespace RoR2ThunderBurster
         {
             if (IsEmbedded())
             {
-                EnsureConstrain();
+                EnsureConstraint();
                 EnsureRemoveDependency();
                 return;
             }
@@ -31,6 +31,16 @@ namespace RoR2ThunderBurster
             }
 
             EmbedPackage();
+            //Trying to write immediatly after embedding doesnt work, wait for the next opportunity
+            EditorApplication.update += UnhookAndEnsure;
+
+
+            void UnhookAndEnsure()
+            {
+                EditorApplication.update -= UnhookAndEnsure;
+                EnsureConstraint();
+                EnsureRemoveDependency();
+            }
         }
 
         private static void EmbedPackage()
@@ -58,21 +68,21 @@ namespace RoR2ThunderBurster
 
         private static bool IsEmbedded()
         {
-            string collectionsPackageInPackagesPath = Path.Combine(Environment.CurrentDirectory, "Packages", "com.unity.collections");
-            if(!Directory.Exists(collectionsPackageInPackagesPath))
-            {
-                //Has not been embedded, prompt embedding.
-                return false;
-            }
-            return true;
+            //Directory.Exists is returning true despite the fact it doesnt exist? weird fucking thing tbh.
+            //Just use a random asset from the collections package and check if the physical path lies in the package cache.
+            string path = AssetDatabase.GUIDToAssetPath("bd605698a338c4de88bb5b3c4632af68");
+            string physicalPath = FileUtil.GetPhysicalPath(path);
+            return !physicalPath.Contains("Library/PackageCache");
         }
 
-        private static void EnsureConstrain()
+        private static void EnsureConstraint()
         {
             string collectionsPackageInPackagesPath = Path.Combine(Environment.CurrentDirectory, "Packages", "com.unity.collections");
             string codeGenFolder = Path.Combine(collectionsPackageInPackagesPath, "Unity.Collections.CodeGen");
             var filePathToAssemblyDefinition = Path.Combine(codeGenFolder, "Unity.Collections.CodeGen.asmdef");
             var deserializedAssemblyDefinition = DeserializedAssemblyDefinition.FromJSON(File.ReadAllText(filePathToAssemblyDefinition));
+            deserializedAssemblyDefinition.versionDefines ??= new DeserializedAssemblyDefinition.VersionDefine[0];
+            deserializedAssemblyDefinition.defineConstraints ??= new string[0];
 
             bool anyChangesMade = false;
 
@@ -87,7 +97,7 @@ namespace RoR2ThunderBurster
             }
             if(!bepinexDefineExists)
             {
-                WriteBepinexDefine(deserializedAssemblyDefinition);
+                WriteBepinexDefine(ref deserializedAssemblyDefinition);
                 anyChangesMade = true;
             }
 
@@ -102,13 +112,13 @@ namespace RoR2ThunderBurster
             }
             if(!constraintExists)
             {
-                WriteConstraint(deserializedAssemblyDefinition);
+                WriteConstraint(ref deserializedAssemblyDefinition);
                 anyChangesMade = true;
             }
 
             if(anyChangesMade)
             {
-                WriteAssemblyDefinition(deserializedAssemblyDefinition, filePathToAssemblyDefinition);
+                WriteAssemblyDefinition(ref deserializedAssemblyDefinition, filePathToAssemblyDefinition);
             }
         }
 
@@ -116,14 +126,14 @@ namespace RoR2ThunderBurster
         {
             string collectionsPackageInPackagesPath = Path.Combine(Environment.CurrentDirectory, "Packages", "com.unity.collections");
             string packageJSONPath = Path.Combine(collectionsPackageInPackagesPath, "package.json");
-
             string json = File.ReadAllText(packageJSONPath);
-            //this hurts
+
+            //No easy way to get an actual C# object from json since the dependency mappings cant be obtained from json utility, and we cant just depend on newtonsoft, so we'll just do it the dirty way.
             string modified = json.Replace("\"com.unity.nuget.mono-cecil\": \"1.11.4\",", "");
             File.WriteAllText(packageJSONPath, modified);
         }
 
-        private static void WriteBepinexDefine(DeserializedAssemblyDefinition deserializedAssemblyDefinition)
+        private static void WriteBepinexDefine(ref DeserializedAssemblyDefinition deserializedAssemblyDefinition)
         {
             DeserializedAssemblyDefinition.VersionDefine define = new DeserializedAssemblyDefinition.VersionDefine
             {
@@ -135,13 +145,13 @@ namespace RoR2ThunderBurster
             ArrayUtility.Add(ref deserializedAssemblyDefinition.versionDefines, define);
         }
 
-        private static void WriteConstraint(DeserializedAssemblyDefinition deserializedAssemblyDefinition)
+        private static void WriteConstraint(ref DeserializedAssemblyDefinition deserializedAssemblyDefinition)
         {
             deserializedAssemblyDefinition.defineConstraints ??= new string[0];
             ArrayUtility.Add(ref deserializedAssemblyDefinition.defineConstraints, CONSTRAINT);
         }
 
-        private static void WriteAssemblyDefinition(DeserializedAssemblyDefinition deserializedAssemblyDefinition, string filePath)
+        private static void WriteAssemblyDefinition(ref DeserializedAssemblyDefinition deserializedAssemblyDefinition, string filePath)
         {
             File.WriteAllText(filePath, DeserializedAssemblyDefinition.ToJSON(deserializedAssemblyDefinition));
         }

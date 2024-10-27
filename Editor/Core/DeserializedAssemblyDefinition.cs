@@ -10,13 +10,16 @@ namespace RoR2ThunderBurster
     {
         public string name;
         public bool allowUnsafeCode;
-        public bool overrideReferences;
         public bool autoReferenced;
+        public bool noEngineReferences;
+        public bool overrideReferences;
+        public string rootNamespace;
+        public string[] defineConstraints;
+        public string[] references;
+        public string[] precompiledReferences;
         public string[] optionalUnityReferences;
         public string[] includePlatforms;
         public string[] excludePlatforms;
-        public string[] precompiledReferences;
-        public string[] defineConstraints;
         public VersionDefine[] versionDefines;
 
         public static DeserializedAssemblyDefinition FromJSON(AssemblyDefinitionAsset asset)
