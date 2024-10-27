@@ -10,6 +10,7 @@ using UnityEngine;
 
 namespace RoR2ThunderBurster
 {
+    // Class that embeds com.unity.collections into the project, this is done to remove an explicit dependency on Mono.Cecil, to allow Bepinex to exist within the project as well
     internal static class CollectionsEmbedder
     {
         private const string BEPINEX_NAME = "bbepis-bepinexpack";
@@ -81,6 +82,7 @@ namespace RoR2ThunderBurster
             string codeGenFolder = Path.Combine(collectionsPackageInPackagesPath, "Unity.Collections.CodeGen");
             var filePathToAssemblyDefinition = Path.Combine(codeGenFolder, "Unity.Collections.CodeGen.asmdef");
             var deserializedAssemblyDefinition = DeserializedAssemblyDefinition.FromJSON(File.ReadAllText(filePathToAssemblyDefinition));
+            //These arrays may be null, ensure theyre not to avoid exceptions
             deserializedAssemblyDefinition.versionDefines ??= new DeserializedAssemblyDefinition.VersionDefine[0];
             deserializedAssemblyDefinition.defineConstraints ??= new string[0];
 
@@ -116,12 +118,14 @@ namespace RoR2ThunderBurster
                 anyChangesMade = true;
             }
 
+            //only write changes if needed
             if(anyChangesMade)
             {
                 WriteAssemblyDefinition(ref deserializedAssemblyDefinition, filePathToAssemblyDefinition);
             }
         }
 
+        //Removes the explicit dependency on mono.cecil
         private static void EnsureRemoveDependency()
         {
             string collectionsPackageInPackagesPath = Path.Combine(Environment.CurrentDirectory, "Packages", "com.unity.collections");
@@ -133,6 +137,7 @@ namespace RoR2ThunderBurster
             File.WriteAllText(packageJSONPath, modified);
         }
 
+        //Adds a version define for bepinex, this way we can constraint the assembly to load only if bepinex is installed.
         private static void WriteBepinexDefine(ref DeserializedAssemblyDefinition deserializedAssemblyDefinition)
         {
             DeserializedAssemblyDefinition.VersionDefine define = new DeserializedAssemblyDefinition.VersionDefine
@@ -145,6 +150,7 @@ namespace RoR2ThunderBurster
             ArrayUtility.Add(ref deserializedAssemblyDefinition.versionDefines, define);
         }
 
+        // Makes sure the assembly only loads if bepinex is installed
         private static void WriteConstraint(ref DeserializedAssemblyDefinition deserializedAssemblyDefinition)
         {
             deserializedAssemblyDefinition.defineConstraints ??= new string[0];

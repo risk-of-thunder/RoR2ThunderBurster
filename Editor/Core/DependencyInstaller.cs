@@ -1,3 +1,4 @@
+//These defines basically ensures this dependency installer enables if any of our dependencies are missing.
 #if UNITY_EDITOR && (!R2TB_THUNDERKIT_INSTALLED || !R2TB_BURST_INSTALLED || !R2TB_COLLECTIONS_INSTALLED || !R2TB_MATHEMATICS_INSTALLED)
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,9 @@ using static UnityEditor.PlayerSettings;
 
 namespace RoR2ThunderBurster
 {
+    /// <summary>
+    /// Static class that handles installation of multiple dependencies for the package.
+    /// </summary>
     internal static class DependencyInstaller
     {
         private const string TK_API_URL = "https://api.github.com/repos/PassivePicasso/ThunderKit/releases/latest";
@@ -25,6 +29,7 @@ namespace RoR2ThunderBurster
         {
             List<(string dependencyID, string packageName, string version)> toInstall = new List<(string dependencyID, string packageName, string version)>();
 
+            //These defines are on the assemblydef themselves, they enable ONLY if a specific unity package is in the project, which is how we make sure we only install the needed packages.
 #if !R2TB_THUNDERKIT_INSTALLED
             toInstall.Add((TK_API_URL + ";" + TK_GIT_URL, "ThunderKit", "Latest"));
 #endif
@@ -54,6 +59,7 @@ namespace RoR2ThunderBurster
             }
         }
 
+        //Installation in an async fashion using a coroutine
         private static void RunCoroutine()
         {
             if(!(coroutine?.MoveNext() ?? false))
@@ -72,6 +78,7 @@ namespace RoR2ThunderBurster
                 (string dep, string pckName, string version) = values[i];
                 if (pckName == "ThunderKit")
                 {
+                    //Since thunderkit is not part of the UPM, we need to use the github api to obtain the latest release, ergo this special handling
                     var subroutine = HandleThunderkit(dep, addValues, id);
                     while (subroutine.MoveNext())
                     {
@@ -85,6 +92,7 @@ namespace RoR2ThunderBurster
                 addValues.Add($"{dep}@{version}");
             }
 
+            //Client.AddAndRemove doesnt work for whatever reason
             for(int i = 0; i < addValues.Count; i++)
             {
                 var packageID = addValues[i];

@@ -10,6 +10,9 @@ using UnityEngine.Networking;
 #if !R2TB_IMPORT_EXTENSIONS
 namespace RoR2.ThunderBurster.ImportExtensions
 {
+    /// <summary>
+    /// Static class thats used to ensure the import extensions are installed properly, otherwise the package wont work fully.
+    /// </summary>
     internal static class PromptInstallationIfMainImportExtensionsMissing
     {
         private static UnityWebRequest _webRequest;

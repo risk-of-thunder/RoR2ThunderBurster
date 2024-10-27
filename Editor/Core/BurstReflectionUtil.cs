@@ -1,3 +1,8 @@
+/*
+ * For future maintainers.
+ * 
+ * This monolithic file contains a bunch of structs that are used to represent either internal or private classes that are used by the Burst editor to compile burst assemblies when a Player is built, to avoid having to build a player which can cause an unecesary large burst assembly, we have to use reflection to mimick as close as possible the actual process.
+ */
 #if UNITY_EDITOR && ENABLE_BURST_AOT && R2TB_BURST_INSTALLED && R2TB_THUNDERKIT_INSTALLED
 using RoR2ThunderBurster.TK;
 using RoR2ThunderBurster.TK.Datums;
@@ -26,6 +31,10 @@ namespace RoR2ThunderBurster.BurstImpl
     {
         internal static BindingFlags all = (BindingFlags)~0;
     }
+
+    /// <summary>
+    /// The TargetPlatform for the bursted assembly, equivalent to Unity.Burst's Unity.Burst.TargetPlatform
+    /// </summary>
     public enum BurstTargetPlatform
     {
         Windows = 0,
@@ -49,6 +58,10 @@ namespace RoR2ThunderBurster.BurstImpl
         visionOS = 18,
         visionSimulator = 19,
     }
+
+    /// <summary>
+    /// Instruction set for the assembly, equivalent to Unity.Burst's Unity.Burst.TargetCpu
+    /// </summary>
     public enum BurstTargetCpu
     {
         Auto = 0,
@@ -65,11 +78,19 @@ namespace RoR2ThunderBurster.BurstImpl
         ARMV8A_AARCH64_HALFFP = 11,
         ARMV9A = 12,
     }
+    
+    /// <summary>
+    /// The kind of PDB file to create for the bursted assembly, equivalent to Unity.Burst.Editor's Unity.Burst.Editor.DebugDataKind
+    /// </summary>
     public enum BurstDebugDataKind
     {
         LineOnly,
         Full
     }
+
+    /// <summary>
+    /// Limited Access to the Unity.Burst.Editor's Unity.Burst.Editor.BurstAotCompiler, methods in here simply invoke reflected methods.
+    /// </summary>
     public struct R_BurstAotCompiler
     {
         private static Type _type;
@@ -155,6 +176,10 @@ namespace RoR2ThunderBurster.BurstImpl
             _collateMiscFiles = _type.GetMethod("CollateMiscFiles", Common.all);
         }
     }
+    
+    /// <summary>
+    /// Limited Access to an instance of Unity.Burst.Editor's Unity.Burst.Editor.BurstAotCompiler+BurstAotSettings
+    /// </summary>
     public struct R_BurstAotCompiler_BurstAotSettings
     {
         private static Type _type;
@@ -170,6 +195,9 @@ namespace RoR2ThunderBurster.BurstImpl
         private static FieldInfo _symbolDefinesHash;
         private static MethodInfo _save;
 
+        /// <summary>
+        /// Gets or Sets the build summary for this instance
+        /// </summary>
         public BuildSummary summary
         {
             get
@@ -182,6 +210,9 @@ namespace RoR2ThunderBurster.BurstImpl
             }
         }
 
+        /// <summary>
+        /// Gets or sets the product name for this instance
+        /// </summary>
         public string productName
         {
             get
@@ -208,6 +239,10 @@ namespace RoR2ThunderBurster.BurstImpl
                 _aotSettingsForTarget.SetValue(instance, value.instance);
             }
         }
+
+        /// <summary>
+        /// Gets or Sets wether the current configuration is supported
+        /// </summary>
         public bool isSupported
         {
             get
@@ -219,6 +254,10 @@ namespace RoR2ThunderBurster.BurstImpl
                 _isSupported.SetValue(instance, value);
             }
         }
+
+        /// <summary>
+        /// Gets or Sets the Target Platform for Burst
+        /// </summary>
         public BurstTargetPlatform targetPlatform
         {
             get
@@ -231,6 +270,9 @@ namespace RoR2ThunderBurster.BurstImpl
             }
         }
 
+        /// <summary>
+        /// Gets or Sets the current instance's TargetCpus
+        /// </summary>
         public R_TargetCpus targetCpus
         {
             get
@@ -243,6 +285,9 @@ namespace RoR2ThunderBurster.BurstImpl
             }
         }
 
+        /// <summary>
+        /// Gets a read only collection of the output combinations for this instance
+        /// </summary>
         public ReadOnlyCollection<R_BurstAotCompiler_BurstOutputCombination> combinations
         {
             get
@@ -256,6 +301,9 @@ namespace RoR2ThunderBurster.BurstImpl
                 return combinations.AsReadOnly();
             }
         }
+        /// <summary>
+        /// Sets new output combinations for this instance.
+        /// </summary>
         public void SetCombinations(IList<R_BurstAotCompiler_BurstOutputCombination> combinations)
         {
             var listType = typeof(List<>);
@@ -269,6 +317,10 @@ namespace RoR2ThunderBurster.BurstImpl
             _combinations.SetValue(instance, newValueForField);
         }
 
+        /// <summary>
+        /// Returns the current combinations as a boxed object
+        /// </summary>
+        /// <returns></returns>
         public object GetCombinationsAsObject()
         {
             var listType = typeof(List<>);
@@ -281,6 +333,10 @@ namespace RoR2ThunderBurster.BurstImpl
             }
             return newValueForField;
         }
+
+        /// <summary>
+        /// the scripting backend for the assembly to be built
+        /// </summary>
         public ScriptingImplementation scriptingBackend
         {
             get
@@ -292,6 +348,9 @@ namespace RoR2ThunderBurster.BurstImpl
                 _scriptingBackend.SetValue(instance, value);
             }
         }
+        /// <summary>
+        /// extra options for the compiler
+        /// </summary>
         public List<string> extraOptions
         {
             get
@@ -303,6 +362,9 @@ namespace RoR2ThunderBurster.BurstImpl
                 _extraOptions.SetValue(instance, value);
             }
         }
+        /// <summary>
+        /// a hash for the assembly symbols
+        /// </summary>
         public Hash128 symbolDefinesHash
         {
             get
@@ -320,15 +382,24 @@ namespace RoR2ThunderBurster.BurstImpl
         /// </summary>
         public object instance { get; private set; }
 
+        /// <summary>
+        /// The assembly to compile
+        /// </summary>
+
         public UnityEditor.Compilation.Assembly assembly;
 
-
+        /// <summary>
+        /// Initializes a new instance of BurstAotSettings, utilizing the data from stage assemblies and an assembly to be ran thru the compiler
+        /// </summary>
+        /// <param name="stageAssemblies">The StageAssemblies job that staged the <paramref name="assemblyToBurst"/></param>
+        /// <param name="assemblyToBurst">The actual assembly to burst</param>
         public static R_BurstAotCompiler_BurstAotSettings DoSetup(StageAssemblies stageAssemblies, DeserializedAssemblyDefinition assemblyToBurst)
         {
             BuildTarget target = stageAssemblies.buildTarget;
 
             var _instance = FormatterServices.GetUninitializedObject(_type);
             var settings = new R_BurstAotCompiler_BurstAotSettings(_instance);
+            //The internals of the compiler expects a BuildSummary, this only gets created on player builds, so we'll have to construct a fake one instead. Cursed as fuck, but it works.
             settings.summary = BuildSummaryHelper.ConstructSummary(stageAssemblies.buildTarget, stageAssemblies.releaseBuild ? BuildOptions.None : BuildOptions.Development, Path.GetFullPath($"ThunderKit/Libraries/{assemblyToBurst.name}.dll"));
             settings.productName = assemblyToBurst.name;
             settings.aotSettingsForTarget = R_BurstPlatformAotSettings.GetOrCreateSettings(target);
@@ -342,6 +413,7 @@ namespace RoR2ThunderBurster.BurstImpl
             settings.SetCombinations(R_BurstAotCompiler.CollectCombinations(settings.targetPlatform, targetCPUs, settings.summary));
             settings.scriptingBackend = PlayerSettings.GetScriptingBackend(NamedBuildTarget.FromBuildTargetGroup(BuildPipeline.GetBuildTargetGroup(target)));
 
+            //I think this is not needed?... i have no idea what UWP is
             if (settings.targetPlatform == BurstTargetPlatform.UWP)
             {
                 List<string> extraOptions = new List<string>();
@@ -373,10 +445,12 @@ namespace RoR2ThunderBurster.BurstImpl
             }
             settings.symbolDefinesHash = definesHash;
 
+            //Might not be needed, unsure
             settings.Save();
             return settings;
         }
 
+        //We cant use the Deserialized assembly definition because burst doesnt understand what that is, instead, we need to get the UnityEditor.Compilation.Assembly object from the deserialized assembly.
         private static UnityEditor.Compilation.Assembly GetAssemblyFromDeserialized(DeserializedAssemblyDefinition deserializedAssemblyDefinition)
         {
             UnityEditor.Compilation.Assembly[] assembliesInCompilationPipeline = CompilationPipeline.GetAssemblies(AssembliesType.PlayerWithoutTestAssemblies);
@@ -393,6 +467,10 @@ namespace RoR2ThunderBurster.BurstImpl
             _save.Invoke(instance, null);
         }
 
+        /// <summary>
+        /// Creates a new wrapper for an instance of BurstAOTSettings
+        /// </summary>
+        /// <param name="instance">The new instance of BurstAOTSettings</param>
         public R_BurstAotCompiler_BurstAotSettings(object instance)
         {
             this.instance = instance;
@@ -417,6 +495,9 @@ namespace RoR2ThunderBurster.BurstImpl
         }
     }
 
+    /// <summary>
+    /// Limited Access to the Unity.Burst's Unity.Burst.BurstCompilerOptions. Methods and Properties just call reflected methods and properties
+    /// </summary>
     public struct R_BurstCompilerOptions
     {
         static Type _type;
@@ -430,6 +511,7 @@ namespace RoR2ThunderBurster.BurstImpl
                 return (bool)_forceDisableBurstCompilation.GetValue(null);
             }
         }
+
         public static string GetOption(string optionName, object value = null)
         {
             return (string)_getOption.Invoke(null, new object[]
@@ -448,6 +530,9 @@ namespace RoR2ThunderBurster.BurstImpl
         }
     }
 
+    /// <summary>
+    /// Limited Access to the Unity.Burst.Editor's Unity.Burst.Editor.BurstPlatformAotSettings class, properties and methods only call reflected properties, methods or are access to fields
+    /// </summary>
     public struct R_BurstPlatformAotSettings
     {
         private static Type _type;
@@ -556,6 +641,9 @@ namespace RoR2ThunderBurster.BurstImpl
         }
     }
 
+    /// <summary>
+    /// Limited Access to Unity.Burst.Editor's Unity.Burst.Editor.BurstAotCompiler.BurstOutputCombination, properties are only used to call reflected fields.
+    /// </summary>
     public struct R_BurstAotCompiler_BurstOutputCombination
     {
         public static Type type { get; private set; }
@@ -603,7 +691,14 @@ namespace RoR2ThunderBurster.BurstImpl
             }
         }
 
+        /// <summary>
+        /// The boxed instance of the BurstOutputCombination
+        /// </summary>
         public object instance { get; private set; }
+
+        /// <summary>
+        /// Creates a new AccessWrapper for a BurstOutputCombination.
+        /// </summary>
         public R_BurstAotCompiler_BurstOutputCombination(object instance) => this.instance = instance;
 
         [InitializeOnLoadMethod]
@@ -618,6 +713,9 @@ namespace RoR2ThunderBurster.BurstImpl
         }
     }
 
+    /// <summary>
+    /// LimitedAccess to Unity.Burst.Editor's Unity.Burst.Editor.TargetCpus class, Properties are only to access reflected field infos
+    /// </summary>
     public struct R_TargetCpus
     {
         public static Type type { get; private set; }
@@ -637,7 +735,15 @@ namespace RoR2ThunderBurster.BurstImpl
                 return result;
             }
         }
+
+        /// <summary>
+        /// The Boxed instance of the TargetCpus class
+        /// </summary>
         public object instance { get; private set; }
+
+        /// <summary>
+        /// Creates a new wrapper for a TargetCpus class
+        /// </summary>
         public R_TargetCpus(object instance) => this.instance = instance;
 
         [InitializeOnLoadMethod]
@@ -648,6 +754,9 @@ namespace RoR2ThunderBurster.BurstImpl
         }
     }
 
+    /// <summary>
+    /// Indirect Access to Unity.Burst's Unity.Burst.Editor.BurstLoader class, also contains properties for accessing the bare minimum of the class BclConfiguration
+    /// </summary>
     public struct R_BurstLoader
     {
         private static Type _type;
@@ -695,6 +804,9 @@ namespace RoR2ThunderBurster.BurstImpl
         }
     }
 
+    /// <summary>
+    /// Limited Access to the Unity.Burst's Unity.Burst.Editor.BurstAssemblyDisable class
+    /// </summary>
     public struct R_BurstAssemblyDisable
     {
         private static Type _type;
@@ -717,17 +829,30 @@ namespace RoR2ThunderBurster.BurstImpl
         }
     }
 
+    /// <summary>
+    /// Limited Access to Unity.Burst.Editor's Unity.Burst.Editor.BurstAotCompiler+BclOutputErrorParser
+    /// </summary>
     public struct R_BclOutputErrorParser
     {
         private static Type _type;
 
+        /// <summary>
+        /// The boxed instance of the BclOutputErrorParser
+        /// </summary>
         public object instance { get; private set; }
 
+        /// <summary>
+        /// Creates a new instance of a BclOutputErrorParser and returns it's wrapped representation
+        /// </summary>
+        /// <returns></returns>
         public static R_BclOutputErrorParser Create()
         {
             return new R_BclOutputErrorParser(Activator.CreateInstance(_type));
         }
 
+        /// <summary>
+        /// Wraps an isntance of BclOutputErrorParser
+        /// </summary>
         public R_BclOutputErrorParser(object instance) => this.instance = instance;
         [InitializeOnLoadMethod]
         static void Reflect()
@@ -736,6 +861,9 @@ namespace RoR2ThunderBurster.BurstImpl
         }
     }
 
+    /// <summary>
+    /// Limited access to Unity.Burst.Editor's Unity.Burst.Editor.BurstAotCompiler+BclRunner
+    /// </summary>
     public struct R_BCLRunner
     {
         private static Type _type;
@@ -780,6 +908,9 @@ namespace RoR2ThunderBurster.BurstImpl
     }
 
     //Some cursed shit going on here
+    /// <summary>
+    /// Struct thats used to create a fake build summary.
+    /// </summary>
     public struct BuildSummaryHelper
     {
         static Type _type;

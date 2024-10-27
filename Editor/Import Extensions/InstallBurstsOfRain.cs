@@ -4,6 +4,9 @@ using RiskOfThunder.RoR2Importer;
 
 namespace RiskOfThunder.ThunderBurster.ImportExtensions
 {
+    /// <summary>
+    /// Import extension that installs Bursts of Rain
+    /// </summary>
     public class InstallBurstsOfRain : ThunderstorePackageInstaller
     {
         public override string DependencyId => "RiskofThunder-BurstsOfRain";

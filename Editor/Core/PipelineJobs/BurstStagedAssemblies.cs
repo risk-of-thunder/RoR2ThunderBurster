@@ -21,13 +21,14 @@ using ThunderKit.Core.Paths;
 
 namespace RoR2ThunderBurster.TK.PipelineJobs
 {
+    /// <summary>
+    /// Pipeline job used to run specific assemblies thru the burst compiler
+    /// </summary>
     [PipelineSupport(typeof(Pipeline)), ManifestProcessor, RequiresManifestDatumType(typeof(BurstAssemblyDefinitionsDatum))]
     public class BurstStagedAssemblies : PipelineJob
     {
         [Tooltip("The StageAssemblies job that ran prior to this one, this is used to obtain data related if the source assemblies where built on release or debug mode, and what platform its targetting.")]
         public StageAssemblies stageAssembliesJob;
-        [Tooltip("If true, All the assembly definitions defined in each BurstAssemblyDefinitionsDatum will be outputted as a single Bursted assembly, otherwise, each assembly will have its bursted counterpart.")]
-        public bool combineOutputIntoSingleAssembly;
         
         public override Task Execute(Pipeline pipeline)
         {
