@@ -1,4 +1,4 @@
-#if R2TB_COLLECTIONS_INSTALLED
+#if UNITY_EDITOR && R2TB_COLLECTIONS_INSTALLED
 using System;
 using System.Collections;
 using System.Collections.Generic;
